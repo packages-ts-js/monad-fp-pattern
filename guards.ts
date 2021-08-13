@@ -1,5 +1,5 @@
-import { IGuardArgument } from './interfaces/IGuardArgument';
-import { IGuardResult } from './interfaces/IGuardResult';
+import { IGuardArgument } from './interfaces/guard-argument.interface';
+import { IGuardResult } from './interfaces/guard-result.interface';
 
 export type GuardArgumentCollection = IGuardArgument<unknown>[];
 
