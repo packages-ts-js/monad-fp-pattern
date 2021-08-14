@@ -3,6 +3,7 @@ import { IGuardResult } from './interfaces/guard-result.interface'
 import { IGuardArgument } from './interfaces/guard-argument.interface'
 import { IResultError } from "./interfaces/result.error.interface"
 
+
 class GuardResult implements IGuardResult, IGuardArgument<any> {
     argument: any
     argumentPath: string
