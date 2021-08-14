@@ -19,12 +19,14 @@ class GuardResult implements IGuardResult, IGuardArgument<any> {
 
     
     getSuccessResult = (argument: any, argumentPath: string): GuardResult => (
-        new GuardResult(this.argument, this.argumentPath, true, `${argumentPath}.correct`)  
+        new GuardResult(argument, argumentPath, true, `${argumentPath}.correct`)  
     )
 
     getArguments (argument?: any, argumentPath?: string): GuardResult {
-        if (argumentPath === null || argumentPath === null) return this
-        return new GuardResult(argument. argumentPath)
+        if (argument === null || argument === undefined)
+            if (argumentPath === null || argumentPath === undefined) return this
+
+        return new GuardResult(argument, argumentPath)
     }
 
    /**
@@ -37,9 +39,10 @@ class GuardResult implements IGuardResult, IGuardArgument<any> {
    * @memberof Guard
    */
     againstNullOrUndefined( argument?: unknown, argumentPath?: string ): GuardResult {
+        if (!this.succeeded) return this
         const guard = this.getArguments(argument, argumentPath)
-        if (guard.argument === null || guard.argument === undefined) 
-            return new GuardResult(guard.argument, guard.argumentPath, false, `${argumentPath} should be defined`)
+        if (guard.argument === null || guard.argument === undefined)
+            return new GuardResult(guard.argument, guard.argumentPath, false, `${guard.argumentPath} should be defined`)
         else 
         return this.getSuccessResult(guard.argument, guard.argumentPath);
     }
@@ -54,11 +57,12 @@ class GuardResult implements IGuardResult, IGuardArgument<any> {
     * @memberof Guard
     */
     isString(argument?: unknown, argumentPath?: string): GuardResult {
+        if (!this.succeeded) return this
         const guard = this.getArguments(argument, argumentPath)
         if (typeof guard.argument === 'string' || guard.argument instanceof String) 
-            return this.getSuccessResult(guard.argument, argumentPath);
+            return this.getSuccessResult(guard.argument, guard.argumentPath);
         
-        return new GuardResult(guard.argument, guard.argumentPath, false, `${argumentPath} should be string` )  
+        return new GuardResult(guard.argument, guard.argumentPath, false, `${guard.argumentPath} isnt of type string` )  
     }
 
 
@@ -72,11 +76,12 @@ class GuardResult implements IGuardResult, IGuardArgument<any> {
    * @memberof Guard
    */
     againstEmptyString( argument?: unknown, argumentPath?: string ): GuardResult {
+        if (!this.succeeded) return this
         let guard = this.getArguments(argument, argumentPath)
         guard = guard.isString()
     
         if (!guard.succeeded) return guard
-        else if (guard.argument === "")  return new GuardResult(guard.argument, guard.argumentPath, false, `${argumentPath} should be defined`)
+        else if (guard.argument === "")  return new GuardResult(guard.argument, guard.argumentPath, false, `${guard.argumentPath} is a empty string`)
         else return this.getSuccessResult(guard.argument, guard.argumentPath);
     }
 
