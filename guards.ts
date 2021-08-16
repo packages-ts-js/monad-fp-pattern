@@ -3,28 +3,26 @@ import { IGuardResult } from './interfaces/guard-result.interface'
 import { IGuardArgument } from './interfaces/guard-argument.interface'
 import { IResultError } from "./interfaces/result.error.interface"
 
-class GuardResult implements IGuardResult, IGuardArgument<any> {
-    argument: any
-    argumentPath: string
+export class Guard  {
+    private readonly argument: any
+    private readonly argumentPath: string
     succeeded: boolean
     message: string
 
-    constructor(argument?: any, argumentPath?: string, succeeded: boolean = true, message: string="") {
+    protected constructor(argument: any, argumentPath: string, succeeded: boolean = true, message: string="") {
         this.argument = argument 
         this.argumentPath = argumentPath
         this.succeeded = succeeded
         this.message = message
     }
 
-    
-    getSuccessResult = (argument: any, argumentPath: string): GuardResult => (
-        new GuardResult(this.argument, this.argumentPath, true, `${argumentPath}.correct`)  
-    )
-
-    getArguments (argument?: any, argumentPath?: string): GuardResult {
-        if (argumentPath === null || argumentPath === null) return this
-        return new GuardResult(argument. argumentPath)
+    public static start(argument: any, argumentPath: string) {
+        return new Guard(argument, argumentPath)
     }
+    
+    getSuccessResult = (argument: any, argumentPath: string): Guard => (
+        new Guard(argument, argumentPath, true, `${argumentPath}.correct`)  
+    )
 
    /**
    * Determines if value isn't null or undefined.
@@ -35,12 +33,12 @@ class GuardResult implements IGuardResult, IGuardArgument<any> {
    * @returns  {IGuardResult}
    * @memberof Guard
    */
-    againstNullOrUndefined( argument?: unknown, argumentPath?: string ): GuardResult {
-        const guard = this.getArguments(argument, argumentPath)
-        if (guard.argument === null || guard.argument === undefined) 
-            return new GuardResult(guard.argument, guard.argumentPath, false, `${argumentPath} should be defined`)
-        else 
-        return this.getSuccessResult(guard.argument, guard.argumentPath);
+    againstNullOrUndefined(): Guard {
+        if (!this.succeeded) return this
+
+        if (this.argument === null || this.argument === undefined)
+            return new Guard(this.argument, this.argumentPath, false, `${this.argumentPath} should be defined`)
+        else return this.getSuccessResult(this.argument, this.argumentPath);
     }
    
     /**
@@ -52,12 +50,13 @@ class GuardResult implements IGuardResult, IGuardArgument<any> {
     * @returns  {GuardResult}
     * @memberof Guard
     */
-    isString(argument?: unknown, argumentPath?: string): GuardResult {
-        const guard = this.getArguments(argument, argumentPath)
-        if (typeof guard.argument === 'string' || guard.argument instanceof String) 
-            return this.getSuccessResult(guard.argument, argumentPath);
+    isString(): Guard {
+        if (!this.succeeded) return this
         
-        return new GuardResult(guard.argument, guard.argumentPath, false, `${argumentPath} should be string` )  
+        if (typeof this.argument === 'string' || this.argument instanceof String) 
+            return this.getSuccessResult(this.argument, this.argumentPath);
+        
+        return new Guard(this.argument, this.argumentPath, false, `${this.argumentPath} isnt of type string` )  
     }
 
 
@@ -70,28 +69,19 @@ class GuardResult implements IGuardResult, IGuardArgument<any> {
    * @returns  {IGuardResult}
    * @memberof Guard
    */
-    againstEmptyString( argument?: unknown, argumentPath?: string ): GuardResult {
-        let guard = this.getArguments(argument, argumentPath)
-        guard = guard.isString()
+    againstEmptyString( argument?: unknown, argumentPath?: string ): Guard {
+        if (!this.succeeded) return this
+        const guard = this.isString()
     
         if (!guard.succeeded) return guard
-        else if (guard.argument === "")  return new GuardResult(guard.argument, guard.argumentPath, false, `${argumentPath} should be defined`)
+        else if (guard.argument === "")  return new Guard(guard.argument, guard.argumentPath, false, `${guard.argumentPath} is a empty string`)
         else return this.getSuccessResult(guard.argument, guard.argumentPath);
     }
 
     
-    public combine(...results: GuardResult[]): GuardResult {
-        for (const r of results) if (!r.succeeded) return r;
-    
-        return this;
-    }
     public mapToResult<T>( succFunc: () => T, errorFunc: (text) => IResultError) : Result<T> {
         if(this.succeeded) return Result.Ok(succFunc())
 
         return Result.Fail(errorFunc(this.message))
     }
 }
-
-
-export type GuardArgumentCollection = IGuardArgument<unknown>[];
-export const guard = new GuardResult()
